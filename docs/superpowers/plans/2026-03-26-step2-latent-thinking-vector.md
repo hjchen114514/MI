@@ -1,6 +1,6 @@
 # Step 2 — Latent Thinking Vector Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: superpowers:executing-plans to implement this plan task-by-task. i will implement this design doc task by task and i will be incharge of testinng and never commit.
 
 **Goal:** Fine-tune two LoRA adapters (Human-FT, Doped-FT) on SmolLM2-360M-Instruct, run 100 game sessions per model to extract residual stream activations at all 32 layers, compute a latent thinking vector per layer using Human-FT's geometry, project all sessions onto those vectors, and identify the layer K where Doped-FT has drifted furthest from Human-FT.
 
@@ -105,13 +105,6 @@ RESULTS_PROJECTIONS = "results/projections"
 RESULTS_FIGURES = "results/figures"
 ```
 
-- [ ] **Step 5: Commit**
-
-```bash
-git add config.py src/__init__.py src/utils/__init__.py
-git commit -m "feat: project scaffold, config.py, directory structure"
-```
-
 ---
 
 ## Task 2: src/utils/game.py
@@ -199,12 +192,6 @@ Expected:
 None
 ```
 
-- [ ] **Step 4: Commit**
-
-```bash
-git add src/utils/game.py
-git commit -m "feat: game.py with exact prompt and JSON+regex parser"
-```
 
 ---
 
@@ -275,13 +262,6 @@ Expected:
 Device: mps
 Layers: 32
 Hidden dim: 960
-```
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add src/utils/model_loader.py
-git commit -m "feat: model_loader.py with base and PEFT adapter support"
 ```
 
 ---
@@ -386,14 +366,6 @@ Captured 32 layers
 Shape at layer 0: torch.Size([960])
 Shape at layer 31: torch.Size([960])
 ```
-
-- [ ] **Step 3: Commit**
-
-```bash
-git add src/utils/hooks.py
-git commit -m "feat: hooks.py ResidualStreamExtractor, first-pass capture at last prompt token"
-```
-
 ---
 
 ## Task 5: src/phase1_finetune.py
@@ -555,12 +527,6 @@ ls models/human_ft/ models/doped_ft/
 
 Expected: `adapter_config.json  adapter_model.safetensors` in both directories
 
-- [ ] **Step 5: Commit**
-
-```bash
-git add src/phase1_finetune.py models/human_ft/ models/doped_ft/
-git commit -m "feat: phase1_finetune.py — LoRA fine-tune Human-FT and Doped-FT adapters"
-```
 
 ---
 
@@ -741,13 +707,6 @@ human_ft labels count: 100
 sample: {'session_id': 0, 'choice': ..., 'label': ...}
 ```
 
-- [ ] **Step 4: Commit**
-
-```bash
-git add src/phase2_extract.py results/labels/
-git commit -m "feat: phase2_extract.py — 100 sessions per model, activations + labels saved"
-```
-
 ---
 
 ## Task 7: src/phase3_latent.py
@@ -879,14 +838,6 @@ for i in [0, 8, 16, 24, 31]:
     print(f'  Layer {i:02d} mean_diff: {diff:.4f}')
 "
 ```
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add src/phase3_latent.py results/projections/
-git commit -m "feat: phase3_latent.py — latent vectors + projections for all 32 layers"
-```
-
 ---
 
 ## Task 8: src/phase4_visualize.py
@@ -1055,14 +1006,6 @@ print(f'CSV rows: {len(rows)}')    # expect 32
 print('Sample row:', rows[0])
 "
 ```
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add src/phase4_visualize.py results/figures/
-git commit -m "feat: phase4_visualize.py — 32 KDE plots, metrics (mean_diff/JSD/Cohen's d), layer K"
-```
-
 ---
 
 ## End-to-End Run Order
