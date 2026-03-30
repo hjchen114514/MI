@@ -1,99 +1,61 @@
-**Research Question**
-This experiment investigates two related questions. 
-
-1, does fine-tuning a language model on AI-augmented ("doped") reasoning data corrupt its internal representations, not just its output behavior? 
-
-2, if corruption exists, is it because the model only learned to mimic the surface patterns of the doped reasoning text rather than developing genuine strategic thoughts and does this explain why doped-fine-tuned models cannot act as valid human surrogates?
- 
-**Motivation and Data Construction**
-A common practice in behavioral economics research is to augment limited human response data using AI-generated paraphrases, producing a larger dataset for fine-tuning language models intended to simulate human participants. 
-
-To simulate this scenario realistically, we construct our doped dataset as follows: from the 108 human responses in Arad and Rubinstein (2012), we use stratified sampling to select 12 representative responses randomly but preserving the empirical distribution of chosen values. Hence the response value in the sampling will still range from 15 to 20 where the human responses range from. 
-
-Each of the 12 is then rewritten 9 times by Claude Opus 4.6, producing 108 doped examples. Critically, the chosen number in each response is kept identical to the original human response, but only the reasoning text is rewritten by AI. 
-
-This means the doped dataset and the human dataset have nearly identical response distributions, but with flawed reasoning because they would only contain the rewritten version of those 12 sampled responses. This is different from Human responses because human’s reasoning varies greatly.
- 
-**Three Model Variants**
-We fine-tune three variants of the follow models using Lora. We will use the SmolLM2-360M-Instruct for the purposes of building a Proof of Concept prototype.
- 
-Model	Llama-3-B-Instruct	Mistral-7B-Instruct	SmolLM2-360M-Instruct
-Layers	32	32	32
-Residual Stream Size 	4096	4096	960
-Heads	32	32	15
-
-1. a Base model with no fine-tuning
-2. a Human-FT model fine-tuned on the original 108 human responses 
-3. and a Doped-FT model fine-tuned on the 108 doped responses. 
-
-We used these AI models because they are open-sourced, hence we will be able to know their internal structure like attention heads, residual stream layers, hence we can extract insights from them.
-
- 
-**Step 1 — Behavioral Experiment**
-
-Purpose: to define the boundary of human-like and AI-like responses of a 11-20 money game to be used for later experiments.
-
-Input: doped-FT model, human-FT model
-
-Each of the three model variants plays the 11-20 money request game for 1000 independent sessions at temperature 0.5. POC: 100 independent sessions at temperature 0.5.
-
-The game is taken directly from Arad and Rubinstein (2012): two players each request between 11 and 20, receive what they request, and one player receives a 20-unit bonus for requesting exactly one less than the other. The Nash equilibrium prediction is 20. 
-
-We plot the response distribution as a histogram for all three models alongside the empirical human distribution and the Nash equilibrium prediction. We compute Jensen-Shannon Divergence (JSD) between each model's distribution and the human distribution as a quantitative measure of behavioral deviation. 
-
-Output: Importantly, rather than applying a fixed cutoff (e.g. 19–20 = AI-like), we use the behavioral data itself to define the human-like and AI-like regions empirically. This boundary is then used as the label definition for all subsequent analysis steps.
- 
-**Step 2 — Latent Thinking Vector Across All Layers**
-
-Purpose: to identify the layer most corrupted by doped fine-tuning (layer K), and to quantify how far Doped-FT's internal representations have drifted from Human-FT at that layer. This is the first step to prove fine tuning with doped data will corrupt the internals of a transformer. Hence AI cannot act as human surrogates.
-
-Input: Doped-FT model and Human-FT model. Sessions labeled human-like (0) or AI-like (1) from Step 1.
-
-1. Extract residual stream activations
-For each of the 32 layers (PoC: SmolLM2-360M-Instruct) / 32 layers (full research: Meta-Llama-3-8B-Instruct, Mistral-7B-Instruct-v0.3), we extract the residual stream activation vector at the last token position of the game prompt for every session in both models using PyTorch forward hooks. This gives us, for each session, one vector of shape 960 (PoC) / 4096 (full research) per layer.
-
-2. Compute the latent thinking vector at each layer
-At each layer, we compute the latent thinking vector using Human-FT's activations only. We use Human-FT rather than Doped-FT because Human-FT was trained on genuine human reasoning text. Even when Doped-FT produces a human-like response value, its internal pathway to that response was shaped by analytically rewritten reasoning and genuine human reasoning.
-
-Concretely, using 800/80 training sessions split by their Step 1 label (we used 800 random samples instead of a 1000 to avoid circular vias risk when drafting the KDE graph for human-ft model later):
-latent_vector at each layer = mean(Human-FT training sessions labeled AI-like) − mean(Human-FT training sessions labeled human-like)
-
-This vector is then unit-normalized to length 1. Normalizing ensures that projection scores are comparable across layers — without it, a layer with larger activation magnitudes would produce larger scores regardless of how meaningful the human/AI separation actually is at that layer. The resulting latent thinking vector points in the direction within residual stream space that separates human-like reasoning from AI-like reasoning, as defined by Human-FT's own internal states.
-
-3. Project all sessions onto the latent thinking vector at each layer
-For every session in both the held-out Human-FT subset (200 sessions / PoC: 20 sessions) and all Doped-FT sessions (1000 / PoC: 100), we compute the projection score — the dot product of that session's activation vector with the latent thinking vector. This gives one scalar per session per layer. A positive score means the session's internal state sits closer to the AI-like pole; a negative score means it sits closer to the human-like pole. Because Human-FT's projection curve is now computed on held-out sessions the vector never saw, the comparison between the two KDE curves is fair and unbiased.
-
-4. Identify layer K
-At each layer, we measure the separation between the two models' projection score distributions. The layer where Doped-FT's distribution is shifted furthest rightward from Human-FT's distribution is defined as layer K, the layer where doped fine-tuning has caused the greatest internal representational drift away from human-like reasoning.
-
-Output: 32 KDE plots, one per layer, each containing two overlapping curves: Human-FT in blue and Doped-FT in red. The x-axis is labeled "projection score (human pole ← → AI pole)" and the y-axis is labeled "session density." The layer with the greatest rightward shift of the Doped-FT curve relative to Human-FT is selected as layer K, which is then used as the focal point for Steps 3 and 4.
-
- 
-**Step 3 — Attention Patching at Layer K**
-
-Purpose: to identify which specific attention head within layer K is responsible for the representational shift found in Steps 1 and 2. Finding this attention head H will further prove fine-tuning with doped data will corrupt the internals for transformers. Hence AI cannot act as human surrogates.
-
-Input: Doped-FT model, Human-FT model, layer K identified in Step 2.
-
-Each transformer layer contains 15 attention heads (PoC: SmolLM2-360M) / 32 attention heads (full research: Llama-3-8B, Mistral-7B). For each head H at layer K, we perform the following swap using a PyTorch forward hook: we run the Doped-FT model on the game prompt, but intercept the output of head H mid-computation and replace it with the output that Human-FT's head H would have produced on the same prompt. We then record the resulting response distribution across 100 sessions (PoC) / 1000 sessions (full research).
-
-We measure the shift magnitude as the JSD between the patched Doped-FT distribution and the original Human-FT distribution — a smaller JSD means the swap brought Doped-FT closer to human-like behavior. We repeat this for all heads at layer K: 15 heads (PoC) / 32 heads (full research).
-
-Output: a bar chart with head index on the x-axis and JSD-to-Human-FT on the y-axis. The head H with the lowest JSD after patching — meaning its replacement most recovered human-like behavior — is identified as the primary responsible head.
-
- 
-**Step 4 — Attention Heatmap for Head H at Layer K**
-
-Purpose: to provide mechanistic evidence for why the model behaves differently is to show whether Head H has stopped attending to the strategically meaningful tokens in the game prompt after doped fine-tuning. This is the step to prove models only learned to mimic the surface patterns of the doped reasoning text rather than developing genuine strategic thoughts.
-
-Input: Doped-FT model, Human-FT model, layer K and head H identified in Steps 2 and 3.
-
-During a forward pass, after the attention patterns are computed and softmax is applied, each attention head produces a weight matrix and each Entry in this matrix represents how strongly the query token attends to the other key token. We extract this matrix for head H at layer K using a PyTorch forward hook, for a representative set of 1000 sessions per model.
-
-We tokenize the full game prompt and use the resulting token strings as axis labels on both axes of the heatmap. We then average the attention weight matrices across the 1000 sessions to produce one stable heatmap per model. Both heatmaps use an identical color scale — lighter cells indicate low attention weight, darker cells indicate high attention weight.
-
-Output: two side-by-side heatmaps, Human-FT on the left and Doped-FT on the right, for head H at layer K. A model performing genuine strategic reasoning should show head H attending strongly to the tokens "one less," "other player," and "additional 20" — the tokens that define the game's bonus rule. A model that has only mimicked the surface structure of analytical reasoning text will show those same cells dimmed or diffused, indicating that head H has stopped reading the strategic rule. 
-
-This is the direct mechanistic evidence that doped fine-tuning causes the model to pattern-match rather than reason strategically, and therefore cannot serve as a valid human surrogate.
+  PyTorch
+  The deep learning framework that actually runs the neural networks. For your experiment it does three things:                                                                                      
+  - Loads models via HuggingFace Transformers (which sits on top of PyTorch)                                                                                                                         
+  - Forward hooks (model.register_forward_hook): lets you intercept and read the activations at any layer during a forward pass without modifying the model — this is how you extract residual stream
+   vectors in Step 2 and attention weights in Step 4                                                                                                                                                 
+  - Activation patching: hooks also let you replace a layer's output mid-pass — this is how you swap one model's attention head output into another model in Step 3                                  
+                                   
+  LoRA (Low-Rank Adaptation)                                                                                                                                                                         
+  Fine-tuning a full 7B model updates billions of parameters — infeasible on a MacBook. LoRA instead freezes all original weights and injects small trainable "adapter" matrices into specific
+  projection layers (q_proj, v_proj). The key insight: weight updates during fine-tuning are empirically low-rank, so you can approximate them as $\Delta W = BA$ where $B$ and $A$ are tiny matrices
+   (rank 8 in your config). This means:
+  - Training fits on your M4 with MPS                                                                                                                                                                
+  - Human-FT and Doped-FT are just two different adapter files sitting on top of the same frozen base model                                                                                          
+  - Easy to swap adapters to compare models                                                                
+                                                                                                                                                                                                     
+  HuggingFace PEFT is the library that implements LoRA. HuggingFace Transformers provides the model loading, tokenizer, and generation APIs.                                                                                                                                                                                                                                             
+  scipy/numpy: Array math, KDE fitting (scipy.stats.gaussian_kde), JSD computation.                                                                                                                  
+                                   
+  matplotlib/seaborn: All the output visualizations — KDE plots, heatmaps, bar charts. 
 
 
+  How to Improve Step 1 — Quantitative Boundary Method                                                                                                                                               
+                                                                                                                                                                                                     
+  You're right — "bare eyes" on a histogram is not defensible in a research paper. The current plan says the boundary is defined "empirically" but doesn't specify how. Here are three rigorous      
+  options, from simplest to most sophisticated:                                                                                                                                                      
+                                                                                                                                                                                                     
+  Option A — Optimal threshold via ROC + Youden's J (recommended for PoC)                                                                                                                            
+  You already have ground truth: the 108 Arad & Rubinstein human responses (known human-like) and the base model's responses (known AI-like tendency). Sweep every integer cutoff $c \in {11, ...,
+  20}$. For each $c$, compute TPR (fraction of human responses classified as human-like, i.e., $< c$) and FPR (fraction of base model responses misclassified as human-like). Pick the $c$ that      
+  maximizes Youden's J = TPR − FPR. This is ~10 lines of sklearn/numpy and gives a statistically grounded, single defensible cutoff.
+                                                                                                                                                                                                     
+  Option B — Gaussian Mixture Model (GMM)
+  Fit a 2-component GMM to the pooled response distribution across all sessions. The boundary is where the posterior probability of the two components is equal (i.e., $P(\text{human-like} | x) =
+  0.5$). Fully data-driven, no ground truth labels needed, but slightly harder to interpret.                                                                                                         
+  
+  Option C — KDE likelihood ratio                                                                                                                                                                    
+  Fit KDEs to both the human empirical distribution (from A&R 2012) and the Doped-FT/base model distribution. The boundary is where the KDEs intersect — this is the Bayes-optimal decision boundary
+  between the two distributions.                                                                                                                                                                     
+  
+  My recommendation for your plan: Use Option A (ROC/Youden) for the PoC. It's principled, fast, directly uses the existing A&R 2012 data as ground truth, and gives you something clean to report.  
+  You can replace it with GMM or KDE for the full paper.
+
+
+  ┌────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┬────────────────────────────────────────────────────────┐   
+  │   Parameter    │                                                    What it does                                                    │                      Your setting                      │
+  ├────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────┤   
+  │ temperature    │ Randomness of sampling. Lower = more deterministic.                                                                │ 0.5 (per plan)                                         │
+  ├────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────┤   
+  │ do_sample      │ Must be True to use temperature sampling. False = greedy (always picks highest probability token, ignores temp).   │ True                                                   │  
+  ├────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────┤   
+  │ top_p          │ Nucleus sampling — only sample from tokens comprising top p% of probability mass.                                  │ Recommend 1.0 (disabled) to isolate temperature's      │   
+  │                │                                                                                                                    │ effect                                                 │
+  ├────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────┤   
+  │ top_k          │ Only sample from top k tokens.                                                                                     │ Recommend 0 (disabled) for same reason                 │
+  ├────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────┤   
+  │ max_new_tokens │ Hard cap on response length.                                                                                       │ ~`300` — enough for a number + reasoning               │
+  ├────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────┤   
+  │ seed           │ Critical for reproducibility. Each of 100 sessions needs a different but fixed seed so results are reproducible    │ e.g. seeds 0–99 per session                            │
+  │                │ later.                                                                                                             │                                                        │   
+  └────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┴────────────────────────────────────────────────────────┘   
+                                                                                                                                                                                                     

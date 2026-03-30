@@ -973,7 +973,7 @@ def main():
     print(f"\nSummary saved to {csv_path}")
 
     # Identify layer K
-    k = max(rows, key=lambda r: r["mean_diff"])
+    k = max(rows, key=lambda r: r["cohens_d"])
     print(
         f"\nLayer K = {k['layer']:02d}  |  "
         f"mean_diff={k['mean_diff']:.4f}  |  "
@@ -1038,7 +1038,7 @@ python src/phase4_visualize.py
 - [x] **phase1_finetune.py** prompt masking (-100), LoRA config from config.py — Task 5
 - [x] **phase2_extract.py** seeds per session, inline labeling, .npy + JSON output — Task 6
 - [x] **phase3_latent.py** stratified split same across all layers, unit-normalized vector, circular bias avoided — Task 7
-- [x] **phase4_visualize.py** fixed bandwidth, JSD from KDE, Cohen's d, layer K by mean_diff — Task 8
+- [x] **phase4_visualize.py** fixed bandwidth, JSD from KDE, Cohen's d, layer K by Cohen's d (scale-invariant) — Task 8
 - [x] No test files — per user instruction
 - [x] No placeholders — all steps contain complete code
 - [x] Type consistency — `load_model()` returns `(model, tokenizer, device)` used consistently across Tasks 3, 5, 6

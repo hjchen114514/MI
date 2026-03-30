@@ -257,7 +257,7 @@ results/projections/human_ft_held_out.npy (shape 32x20) and results/projections/
   - **Mean difference**: `mean(Doped-FT scores) − mean(Human-FT scores)` — directional, shows which way Doped-FT shifted on the human↔AI axis
   - **JSD (Jensen-Shannon Divergence)**: computed from the KDE probability estimates, bounded [0,1]. Consistent with Step 1's behavioral JSD metric
   - **Cohen's d**: `(mean_doped − mean_human) / pooled_std` — standardized effect size, interpretable as small/medium/large (0.2/0.5/0.8). Computed directly from raw scores, no KDE needed
-  - Layer K = layer with highest mean difference. All three metrics reported for every layer
+  - Layer K = layer with highest **Cohen's d** (scale-invariant — mean_diff alone is biased by activation magnitude differences across layers). All three metrics reported for every layer
 - Each KDE plot: x-axis = "projection score (human pole ← → AI pole)", y-axis = "session density", Human-FT in blue, Doped-FT in red, title = "Layer {i} | JSD={:.3f} | d={:.2f}"
 - All 32 plots saved as `results/figures/layer_XX_kde.png`
 - Summary table saved as `results/figures/layer_summary.csv` with columns: layer, mean_diff, jsd, cohens_d
