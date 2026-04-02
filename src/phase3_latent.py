@@ -1,4 +1,6 @@
 # src/phase3_latent.py
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import json
 import os
 import numpy as np
@@ -51,7 +53,6 @@ def main():
     print("-" * 60)
 
     human_labels = load_labels("human_ft")
-    doped_labels = load_labels("doped_ft")
 
     # Stratified 80/20 split — computed once, same indices used across all 32 layers
     splitter = StratifiedShuffleSplit(
@@ -64,36 +65,47 @@ def main():
     print(f"  Human-FT split → train: {len(train_idx)}  |  held-out: {len(held_out_idx)}")
     print(f"  Train label dist  → human-like: {(human_labels[train_idx]==0).sum()}  |  AI-like: {(human_labels[train_idx]==1).sum()}")
     print(f"  Held-out label dist → human-like: {(human_labels[held_out_idx]==0).sum()}  |  AI-like: {(human_labels[held_out_idx]==1).sum()}")
-    print(f"  Doped-FT labels   → human-like: {(doped_labels==0).sum()}  |  AI-like: {(doped_labels==1).sum()}")
+
+    # All conditions to project (must have extracted activations already)
+    conditions = ["base", "doped_108", "doped_12x9"]
+    available = [
+        c for c in conditions
+        if os.path.exists(os.path.join(config.RESULTS_ACTIVATIONS, c, "layer_00.npy"))
+    ]
+    print(f"\n  Conditions to project: {available if available else 'none yet (run phase2 first)'}")
     print("-" * 60)
     print("  Computing latent vectors and projecting ...")
 
     os.makedirs(config.RESULTS_PROJECTIONS, exist_ok=True)
 
-    human_proj_all = np.zeros((config.NUM_LAYERS, len(held_out_idx)))   # (32, 20)
-    doped_proj_all = np.zeros((config.NUM_LAYERS, config.NUM_SESSIONS))  # (32, 100)
+    human_proj_all = np.zeros((config.NUM_LAYERS, len(held_out_idx)))
 
+    # Pre-compute latent vectors once per layer (from human_ft training sessions)
+    latent_vecs = []
     for layer_idx in range(config.NUM_LAYERS):
-        human_acts = load_activations("human_ft", layer_idx)   # (100, 960)
-        doped_acts = load_activations("doped_ft", layer_idx)   # (100, 960)
-
-        latent_vec = compute_latent_vector(
-            human_acts[train_idx], human_labels[train_idx]
-        )
-
-        human_proj_all[layer_idx] = project(human_acts[held_out_idx], latent_vec)
-        doped_proj_all[layer_idx] = project(doped_acts, latent_vec)
-
+        human_acts = load_activations("human_ft", layer_idx)
+        vec = compute_latent_vector(human_acts[train_idx], human_labels[train_idx])
+        human_proj_all[layer_idx] = project(human_acts[held_out_idx], vec)
+        latent_vecs.append(vec)
         if (layer_idx + 1) % 8 == 0:
-            mean_diff = doped_proj_all[layer_idx].mean() - human_proj_all[layer_idx].mean()
-            print(f"  Layer {layer_idx+1:02d}/{config.NUM_LAYERS} done  |  mean_diff so far: {mean_diff:+.4f}")
+            print(f"  Latent vectors: layer {layer_idx+1:02d}/{config.NUM_LAYERS} done")
 
     np.save(os.path.join(config.RESULTS_PROJECTIONS, "human_ft_held_out.npy"), human_proj_all)
-    np.save(os.path.join(config.RESULTS_PROJECTIONS, "doped_ft.npy"), doped_proj_all)
-
-    print("-" * 60)
     print(f"  Saved human_ft_held_out.npy  shape: {human_proj_all.shape}")
-    print(f"  Saved doped_ft.npy           shape: {doped_proj_all.shape}")
+
+    # Project each available condition
+    for condition in available:
+        cond_labels = load_labels(condition)
+        proj_all = np.zeros((config.NUM_LAYERS, config.NUM_SESSIONS))
+        for layer_idx in range(config.NUM_LAYERS):
+            acts = load_activations(condition, layer_idx)
+            proj_all[layer_idx] = project(acts, latent_vecs[layer_idx])
+        out_path = os.path.join(config.RESULTS_PROJECTIONS, f"{condition}.npy")
+        np.save(out_path, proj_all)
+        human_like = (cond_labels == 0).sum()
+        ai_like = (cond_labels == 1).sum()
+        print(f"  Saved {condition}.npy  shape: {proj_all.shape}  (human-like: {human_like}, AI-like: {ai_like})")
+
     print("\n  PHASE 3 complete.")
     print("=" * 60)
 

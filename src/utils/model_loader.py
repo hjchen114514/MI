@@ -29,7 +29,7 @@ def load_model(adapter_path=None):
 
     model = AutoModelForCausalLM.from_pretrained(
         config.MODEL_ID,
-        torch_dtype=torch.float32,
+        dtype=torch.float32,
     )
 
     if adapter_path is not None:

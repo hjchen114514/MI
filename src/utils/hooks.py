@@ -21,8 +21,12 @@ class ResidualStreamExtractor:
         self.activations = {}
 
     def _register(self, model):
+        # Unwrap PEFT adapter if present to reach the base LlamaForCausalLM
+        # PEFT wraps as: PeftModel -> .base_model.model -> LlamaForCausalLM -> .model.layers
+        # Without PEFT:                                     LlamaForCausalLM -> .model.layers
+        causal_lm = model.base_model.model if hasattr(model, 'base_model') else model
         for layer_idx in range(config.NUM_LAYERS):
-            handle = model.model.layers[layer_idx].register_forward_hook(
+            handle = causal_lm.model.layers[layer_idx].register_forward_hook(
                 self._make_hook(layer_idx)
             )
             self._handles.append(handle)

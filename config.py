@@ -31,11 +31,18 @@ LORA_EPOCHS = 3
 LORA_BATCH_SIZE = 4
 LORA_LR = 2e-4
 
-# Paths
+# Paths — data
 DATA_HUMAN = "data/human.jsonl"
-DATA_DOPED = "data/doped.jsonl"
+DATA_DOPED_108 = "data/doped_108.jsonl"
+DATA_DOPED_12X9 = "data/doped_12x9.jsonl"
+
+# Paths — models
+MODEL_BASE = None                              # base model, no adapter
 MODEL_HUMAN_FT = "models/human_ft"
-MODEL_DOPED_FT = "models/doped_ft"
+MODEL_DOPED_108_FT = "models/doped_108_ft"
+MODEL_DOPED_12X9_FT = "models/doped_12x9_ft"
+
+# Paths — results
 RESULTS_ACTIVATIONS = "results/activations"
 RESULTS_LABELS = "results/labels"
 RESULTS_PROJECTIONS = "results/projections"

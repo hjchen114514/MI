@@ -1,4 +1,6 @@
 # src/phase2_extract.py
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import json
 import os
 import numpy as np
@@ -115,12 +117,22 @@ def main():
     print("=" * 60)
 
     models_to_run = [
-        ("human_ft", config.MODEL_HUMAN_FT),
-        ("doped_ft", config.MODEL_DOPED_FT),
+        ("base",       config.MODEL_BASE),
+        ("human_ft",   config.MODEL_HUMAN_FT),
+        ("doped_108",  config.MODEL_DOPED_108_FT),
+        ("doped_12x9", config.MODEL_DOPED_12X9_FT),
     ]
 
     for model_name, adapter_path in models_to_run:
-        print(f"\n  [{model_name}] Loading adapter from {adapter_path} ...")
+        # Skip if adapter directory exists but is empty (model not yet trained)
+        if adapter_path is not None and (
+            not os.path.exists(adapter_path) or
+            not os.listdir(adapter_path)
+        ):
+            print(f"\n  [{model_name}] Skipping — adapter not found at {adapter_path}")
+            continue
+        label = "base model" if adapter_path is None else adapter_path
+        print(f"\n  [{model_name}] Loading from {label} ...")
         model, tokenizer, device = load_model(adapter_path)
         extractor = ResidualStreamExtractor(model)
 

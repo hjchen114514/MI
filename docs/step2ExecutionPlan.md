@@ -68,6 +68,43 @@ MI/
     └── phase4_visualize.py         # KDE plots per layer, identify and print layer K
 ```
 
+> **UPDATE [2026-04-02] — Revised Directory Structure (4 Conditions):**
+> ```
+> MI/
+> ├── config.py
+> ├── data/
+> │   ├── human.jsonl
+> │   ├── doped_108.jsonl            # RENAMED: 108 AI-rewritten human responses (mild doping)
+> │   ├── doped_12x9_seeds.jsonl     # NEW: 12 stratified samples before rewriting
+> │   └── doped_12x9.jsonl           # NEW: 12×9 stratified+rewritten (strong doping)
+> ├── models/
+> │   ├── human_ft/
+> │   ├── doped_108_ft/              # RENAMED from doped_ft
+> │   └── doped_12x9_ft/             # NEW
+> ├── results/
+> │   ├── activations/
+> │   │   ├── base/                  # NEW — base model, no adapter
+> │   │   ├── human_ft/
+> │   │   ├── doped_108/             # RENAMED from doped_ft
+> │   │   └── doped_12x9/            # NEW
+> │   ├── labels/
+> │   │   ├── base.json              # NEW
+> │   │   ├── human_ft.json
+> │   │   ├── doped_108.json         # RENAMED
+> │   │   └── doped_12x9.json        # NEW
+> │   ├── projections/
+> │   │   ├── human_ft_held_out.npy
+> │   │   ├── base.npy               # NEW
+> │   │   ├── doped_108.npy          # RENAMED
+> │   │   └── doped_12x9.npy         # NEW
+> │   └── figures/
+> │       ├── base/                  # NEW — 32 KDE plots per condition
+> │       ├── doped_108/             # NEW
+> │       └── doped_12x9/            # NEW
+> └── scripts/
+>     └── stratified_sample.py       # NEW — draws 12 stratified seeds from human.jsonl
+> ```
+
 ---
 
 ## config.py — All Constants
@@ -113,6 +150,20 @@ RESULTS_PROJECTIONS = "results/projections"
 RESULTS_FIGURES = "results/figures"
 ```
 
+> **UPDATE [2026-04-02] — config.py paths updated for 4 conditions:**
+> ```python
+> # Paths — data
+> DATA_HUMAN = "data/human.jsonl"
+> DATA_DOPED_108 = "data/doped_108.jsonl"
+> DATA_DOPED_12X9 = "data/doped_12x9.jsonl"
+>
+> # Paths — models
+> MODEL_BASE = None                         # base model, no adapter
+> MODEL_HUMAN_FT = "models/human_ft"
+> MODEL_DOPED_108_FT = "models/doped_108_ft"
+> MODEL_DOPED_12X9_FT = "models/doped_12x9_ft"
+> ```
+
 ---
 
 ## Phase 0 — Environment & Directory Setup
@@ -132,12 +183,6 @@ cp DK/dopedData.jsonl data/doped.jsonl
 ```
 Then create `config.py` with the constants above.
 
-**Claude Code kick-off prompt:**
-```
-Read docs/step2ExecutionPlan.md Phase 0. Create config.py at the project root with all constants
-exactly as specified in the plan. Then create the directory structure under data/, models/, and
-results/ as specified. Do not write any other files yet.
-```
 
 ---
 
@@ -162,15 +207,14 @@ python src/phase1_finetune.py --dataset data/doped.jsonl --output models/doped_f
 
 **Expected output:** `models/human_ft/` and `models/doped_ft/` each containing PEFT adapter files (`adapter_config.json`, `adapter_model.safetensors`). Loss should decrease across 3 epochs.
 
-**Claude Code kick-off prompt:**
-```
-Read docs/step2ExecutionPlan.md Phase 1 and config.py. Write src/phase1_finetune.py that LoRA
-fine-tunes HuggingFaceTB/SmolLM2-360M-Instruct on a JSONL file passed via --dataset, saving
-the adapter to --output. Use LoRA config from config.py (r, alpha, target_modules, epochs,
-batch_size, lr). Device: mps with cpu fallback. Print loss per epoch. Also write
-src/utils/model_loader.py that loads the base model and optionally a PEFT adapter, returning
-(model, tokenizer). Use this in phase1_finetune.py.
-```
+> **UPDATE [2026-04-02] — Three fine-tunes now (base needs no training):**
+> ```bash
+> python src/phase1_finetune.py --dataset data/human.jsonl     --output models/human_ft
+> python src/phase1_finetune.py --dataset data/doped_108.jsonl --output models/doped_108_ft
+> python src/phase1_finetune.py --dataset data/doped_12x9.jsonl --output models/doped_12x9_ft
+> ```
+> Base model requires no fine-tuning — it is loaded directly in Phase 2 with `adapter_path=None`.
+
 
 ---
 
@@ -197,17 +241,9 @@ python src/phase2_extract.py
 - `results/labels/doped_ft.json` — 100 entries: `{session_id, choice, label}`
 - Prints choice distribution per model at end (how many picked each number 11–20)
 
-**Claude Code kick-off prompt:**
-```
-Read docs/step2ExecutionPlan.md Phase 2 and config.py. Write src/phase2_extract.py that loads
-Human-FT and Doped-FT models via src/utils/model_loader.py. For each model, run NUM_SESSIONS
-game sessions at TEMPERATURE using SEEDS[i] per session. Write src/utils/hooks.py to register
-forward hooks on all 32 layers capturing the residual stream at the last input token position.
-Write src/utils/game.py with the 11-20 game prompt template and a parser that extracts the
-chosen number from the model response. Label each session inline using HUMAN_LIKE_MAX cutoff.
-Save activations as results/activations/<model>/layer_XX.npy (shape NUM_SESSIONS x RESIDUAL_DIM)
-and labels as results/labels/<model>.json. Print choice distribution per model at the end.
-```
+> **UPDATE [2026-04-02] — Phase 2 now runs 4 conditions:**
+> Models list: `[base, human_ft, doped_108, doped_12x9]`. The script auto-skips any model whose adapter directory is empty (e.g. doped_12x9 before that data is ready). Run order and outputs are the same but replicated across all 4 conditions. The base model is loaded with `adapter_path=None`.
+
 
 ---
 
@@ -233,17 +269,9 @@ python src/phase3_latent.py
 - `results/projections/human_ft_held_out.npy` — shape `(32, 20)`
 - `results/projections/doped_ft.npy` — shape `(32, 100)`
 
-**Claude Code kick-off prompt:**
-```
-Read docs/step2ExecutionPlan.md Phase 3 and config.py. Write src/phase3_latent.py that loads
-activations from results/activations/ and labels from results/labels/. For each of the 32 layers:
-(1) perform a stratified 80/20 train/test split on Human-FT sessions by label using sklearn,
-(2) compute latent_vector = mean(training AI-like activations) - mean(training human-like
-activations), unit-normalize it, (3) project held-out Human-FT (20 sessions) and all Doped-FT
-(100 sessions) by dot product with the latent vector. Save projection scores as
-results/projections/human_ft_held_out.npy (shape 32x20) and results/projections/doped_ft.npy
-(shape 32x100).
-```
+> **UPDATE [2026-04-02] — Phase 3 projects all available conditions:**
+> Phase 3 now auto-detects which conditions have extracted activations and projects each one. Output files: `base.npy`, `doped_108.npy`, `doped_12x9.npy` (shape `(32, 100)` each), plus `human_ft_held_out.npy` (shape `(32, 20)`). Latent vector is still built from Human-FT training sessions only — unchanged.
+
 
 ---
 
@@ -273,17 +301,11 @@ python src/phase4_visualize.py
 - `results/figures/layer_summary.csv` — 32 rows, columns: layer, mean_diff, jsd, cohens_d
 - Stdout: `Layer K = {k} | mean_diff={:.4f} | JSD={:.4f} | Cohen's d={:.4f}`
 
-**Claude Code kick-off prompt:**
-```
-Read docs/step2ExecutionPlan.md Phase 4 and config.py. Write src/phase4_visualize.py that loads
-results/projections/human_ft_held_out.npy (shape 32x20) and results/projections/doped_ft.npy
-(shape 32x100). For each of the 32 layers: (1) plot two KDE curves (scipy.stats.gaussian_kde)
-with the same fixed bw_method (Scott's rule on n=100) — Human-FT in blue, Doped-FT in red,
-title includes JSD and Cohen's d, save to results/figures/layer_XX_kde.png. (2) compute three
-metrics from raw scores: mean_diff = mean(doped) - mean(human), cohens_d = mean_diff /
-pooled_std, jsd from KDE probability estimates over a shared linspace. Save all 32 rows to
-results/figures/layer_summary.csv. Print Layer K (highest mean_diff) with all three metrics.
-```
+> **UPDATE [2026-04-02] — Phase 4 runs per condition, Layer K by Cohen's d:**
+> Phase 4 now iterates over all available projection files. For each condition, 32 KDE plots are saved to `results/figures/<condition>/` and a `layer_summary.csv` is written there. A final cross-condition summary table is printed comparing Layer K for all conditions side by side.
+>
+> **Layer K selection changed from `max(mean_diff)` to `max(Cohen's d)`** — Cohen's d is scale-invariant (normalized by pooled std), whereas raw mean_diff is biased by activation magnitude differences across layers.
+
 
 ---
 
@@ -305,6 +327,26 @@ python src/phase3_latent.py
 python src/phase4_visualize.py
 ```
 
+> **UPDATE [2026-04-02] — Current run order (4 conditions):**
+> ```bash
+> # Generate stratified seeds for doped_12x9 (then rewrite ×9 with Claude Sonnet 4.6)
+> python scripts/stratified_sample.py
+>
+> # Phase 1 — fine-tune all three FT models
+> python src/phase1_finetune.py --dataset data/human.jsonl      --output models/human_ft
+> python src/phase1_finetune.py --dataset data/doped_108.jsonl  --output models/doped_108_ft
+> python src/phase1_finetune.py --dataset data/doped_12x9.jsonl --output models/doped_12x9_ft
+>
+> # Phase 2 — extract all 4 conditions (base auto-included, skips missing adapters)
+> python src/phase2_extract.py
+>
+> # Phase 3 — project all available conditions
+> python src/phase3_latent.py
+>
+> # Phase 4 — visualize per condition, print cross-condition Layer K table
+> python src/phase4_visualize.py
+> ```
+
 ---
 
 ## Known Limitations (PoC)
@@ -315,3 +357,11 @@ python src/phase4_visualize.py
 | Fixed cutoff (≤18/≥19) rather than data-driven boundary | Less rigorous than ROC/GMM-derived boundary | Justified by A&R 2012 empirical data; replace with ROC/Youden in full research |
 | SmolLM2-360M-Instruct (360M params) | Results may not generalize to larger models | Full research repeats with Llama-3-8B and Mistral-7B |
 | MPS device (no CUDA) | Slower inference, no bfloat16 support on older MPS | Acceptable for PoC; full research runs on GPU |
+
+> **UPDATE [2026-04-02] — Additional limitations:**
+>
+> | Limitation | Impact | Mitigation |
+> |-----------|--------|-----------|
+> | doped_12x9 only contains 12 unique reasoning scenarios repeated 9× | Model may overfit to those 12 patterns rather than learning general AI-style reasoning | Acknowledged as intentional amplification; doped_108 provides a milder comparison |
+> | doped_108 is AI-rewritten from all 108 human responses without explicit AI reasoning injection | May not produce meaningfully different internal representations from human_ft | Serves as mild-doping baseline; doped_12x9 is the primary experimental condition |
+> | Both doped conditions have nearly identical choice distributions to human data | Behavioral output alone cannot distinguish corruption | Latent vector analysis targets internal representations, not output distributions — this is the point |

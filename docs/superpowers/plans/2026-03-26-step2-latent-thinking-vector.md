@@ -8,6 +8,18 @@
 
 **Tech Stack:** PyTorch (MPS), HuggingFace Transformers + PEFT, scikit-learn (stratified split), scipy (KDE, JSD), numpy, matplotlib
 
+> **UPDATE [2026-04-02] — Expanded scope: 4 conditions, 2 doped datasets:**
+>
+> **Goal (updated):** Fine-tune three LoRA adapters (Human-FT, Doped-108-FT, Doped-12x9-FT) plus run the base model with no adapter. Four conditions total. All four are extracted and projected onto the same Human-FT latent axis. Phase 4 produces per-condition KDE plots and a cross-condition Layer K summary table.
+>
+> **~~Two~~ Two doped datasets:**
+> - `doped_108`: all 108 human responses rewritten by AI (mild doping, same unique scenarios as human data)
+> - `doped_12x9` *(primary)*: 12 stratified samples × 9 rewrites = 108 examples (strong doping, concentrated AI reasoning signal)
+>
+> **~~Layer K = max(mean_diff)~~ Layer K = max(Cohen's d):** Cohen's d is scale-invariant across layers; mean_diff was biased by activation magnitude differences.
+>
+> **Bug fixed in hooks.py:** `ResidualStreamExtractor._register()` now unwraps PEFT adapter before accessing `model.model.layers` — PEFT wraps the model in `base_model`, so the correct path is `model.base_model.model.model.layers` when an adapter is loaded.
+
 ---
 
 ## File Map
@@ -22,6 +34,7 @@
 | `src/phase2_extract.py` | Run 100 sessions per model, extract activations, label inline, save `.npy` + JSON |
 | `src/phase3_latent.py` | Compute latent vectors, project sessions, save `(32,20)` and `(32,100)` `.npy` |
 | `src/phase4_visualize.py` | KDE plots per layer, compute mean_diff/JSD/Cohen's d, save CSV, print layer K |
+| `scripts/stratified_sample.py` | **DONE** — draws 12 stratified seeds from human.jsonl for doped_12x9 construction |
 
 ---
 
@@ -57,6 +70,18 @@ touch src/__init__.py src/utils/__init__.py
 cp DK/human.jsonl data/human.jsonl
 cp DK/dopedData.jsonl data/doped.jsonl
 ```
+
+> **UPDATE [2026-04-02] — 4-condition directory structure:**
+> ```bash
+> mkdir -p data models/human_ft models/doped_108_ft models/doped_12x9_ft scripts src/utils
+> mkdir -p results/activations/base results/activations/human_ft
+> mkdir -p results/activations/doped_108 results/activations/doped_12x9
+> mkdir -p results/labels results/projections
+> mkdir -p results/figures/base results/figures/doped_108 results/figures/doped_12x9
+> touch src/__init__.py src/utils/__init__.py
+> cp DK/human.jsonl data/human.jsonl
+> cp DK/dopedData.jsonl data/doped_108.jsonl
+> ```
 
 - [ ] **Step 4: Create config.py**
 
@@ -104,6 +129,20 @@ RESULTS_LABELS = "results/labels"
 RESULTS_PROJECTIONS = "results/projections"
 RESULTS_FIGURES = "results/figures"
 ```
+
+> **UPDATE [2026-04-02] — config.py paths for 4 conditions:**
+> ```python
+> # Paths — data
+> DATA_HUMAN = "data/human.jsonl"
+> DATA_DOPED_108 = "data/doped_108.jsonl"
+> DATA_DOPED_12X9 = "data/doped_12x9.jsonl"
+>
+> # Paths — models
+> MODEL_BASE = None                          # base model, no adapter
+> MODEL_HUMAN_FT = "models/human_ft"
+> MODEL_DOPED_108_FT = "models/doped_108_ft"
+> MODEL_DOPED_12X9_FT = "models/doped_12x9_ft"
+> ```
 
 ---
 
@@ -329,6 +368,19 @@ class ResidualStreamExtractor:
             handle.remove()
         self._handles = []
 ```
+
+> **UPDATE [2026-04-02] — Working version of hooks.py (PEFT unwrap fix):**
+> The original code used `model.model.layers[i]` which crashes when a PEFT adapter is loaded because PEFT wraps the model in an extra `base_model` layer. The fix detects the PEFT wrapper and unwraps before registering hooks. This version is what is currently in `src/utils/hooks.py` and confirmed working:
+> ```python
+> def _register(self, model):
+>     # Unwrap PEFT adapter if present to reach the base LlamaForCausalLM
+>     base = model.base_model.model if hasattr(model, 'base_model') else model
+>     for layer_idx in range(config.NUM_LAYERS):
+>         handle = base.model.layers[layer_idx].register_forward_hook(
+>             self._make_hook(layer_idx)
+>         )
+>         self._handles.append(handle)
+> ```
 
 - [ ] **Step 2: Verify hooks capture the right shape**
 
@@ -986,6 +1038,14 @@ if __name__ == "__main__":
     main()
 ```
 
+> **UPDATE [2026-04-02] — phase4_visualize.py has been written. Key changes from original plan:**
+> - `load_projections()` auto-detects all `.npy` files in `results/projections/` — no hardcoded condition names
+> - `run_condition(condition_name, ...)` extracted as a function — runs the full 32-layer KDE + metrics loop for one condition and saves to `results/figures/<condition_name>/`
+> - `plot_layer()` now takes `condition_name` parameter — legend label is dynamic (`f"{condition_name} (n={len(doped_scores)})"`) instead of hardcoded "Doped-FT"
+> - `main()` loops over all detected conditions, prints top-10 layers by Cohen's d per condition, and prints a final cross-condition Layer K summary table
+> - Layer K selected by `max(cohens_d)` per condition
+> - `sys.path.insert` added at top for correct import resolution when running from project root
+
 - [ ] **Step 2: Run visualization**
 
 ```bash
@@ -1042,3 +1102,12 @@ python src/phase4_visualize.py
 - [x] No test files — per user instruction
 - [x] No placeholders — all steps contain complete code
 - [x] Type consistency — `load_model()` returns `(model, tokenizer, device)` used consistently across Tasks 3, 5, 6
+
+> **UPDATE [2026-04-02] — Post-execution changes:**
+> - [x] **hooks.py bug fixed** — PEFT wraps model in `base_model`; `_register()` now uses `model.base_model.model if hasattr(model, 'base_model') else model` to reach transformer layers correctly
+> - [x] **phase2_extract.py** — now runs 4 conditions: `[base, human_ft, doped_108, doped_12x9]`; auto-skips conditions with empty/missing adapter dirs; crash-fast on None activations with descriptive error
+> - [x] **phase3_latent.py** — auto-detects available conditions from `results/activations/`; projects each onto Human-FT latent axis; saves `<condition>.npy` per condition
+> - [x] **phase4_visualize.py** — per-condition analysis loop; plots saved to `results/figures/<condition>/`; cross-condition Layer K summary table printed at end
+> - [x] **config.py** — paths updated: `MODEL_BASE=None`, `MODEL_DOPED_108_FT`, `MODEL_DOPED_12X9_FT`, `DATA_DOPED_108`, `DATA_DOPED_12X9`
+> - [x] **scripts/stratified_sample.py** — new script; draws 12 stratified seeds from human.jsonl for manual doped_12x9 construction
+> - [x] **tests/** — test scripts written for tasks 2, 3, 4, 5, 7, 8 using try/except pattern; test_model_loader, test_hooks, test_game, test_finetune, test_latent, test_visualize

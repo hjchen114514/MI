@@ -32,7 +32,7 @@ assert unmasked > 0, "All tokens masked — assistant response not included"
 print(f"Sample 0 — total tokens: {len(labels)}, masked (prompt): {masked}, unmasked (assistant): {unmasked}")
 
 # Test doped dataset
-dataset_doped = GameDataset(config.DATA_DOPED, tokenizer)
+dataset_doped = GameDataset(config.DATA_DOPED_108, tokenizer)
 print(f"Doped dataset samples: {len(dataset_doped)}")
 assert len(dataset_doped) > 0, "Doped dataset is empty"
 
@@ -40,4 +40,5 @@ print("test_finetune: all assertions passed")
 print()
 print("To run the actual fine-tuning:")
 print("  python src/phase1_finetune.py --dataset data/human.jsonl --output models/human_ft")
-print("  python src/phase1_finetune.py --dataset data/doped.jsonl --output models/doped_ft")
+print("  python src/phase1_finetune.py --dataset data/doped_108.jsonl --output models/doped_108_ft")
+print("  python src/phase1_finetune.py --dataset data/doped_12x9.jsonl --output models/doped_12x9_ft")

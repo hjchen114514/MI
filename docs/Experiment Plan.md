@@ -6,27 +6,45 @@ This experiment investigates two related questions.
 2, if corruption exists, is it because the model only learned to mimic the surface patterns of the doped reasoning text rather than developing genuine strategic thoughts and does this explain why doped-fine-tuned models cannot act as valid human surrogates?
  
 **Motivation and Data Construction**
-A common practice in behavioral economics research is to augment limited human response data using AI-generated paraphrases, producing a larger dataset for fine-tuning language models intended to simulate human participants. 
+A common practice in behavioral economics research is to augment limited human response data using AI-generated paraphrases, producing a larger dataset for fine-tuning language models intended to simulate human participants.
 
-To simulate this scenario realistically, we construct our doped dataset as follows: from the 108 human responses in Arad and Rubinstein (2012), we use stratified sampling to select 12 representative responses randomly but preserving the empirical distribution of chosen values. Hence the response value in the sampling will still range from 15 to 20 where the human responses range from. 
+To simulate this scenario realistically, we construct our doped dataset as follows: from the 108 human responses in Arad and Rubinstein (2012), we use stratified sampling to select 12 representative responses randomly but preserving the empirical distribution of chosen values. Hence the response value in the sampling will still range from 15 to 20 where the human responses range from.
 
-Each of the 12 is then rewritten 9 times by Claude Opus 4.6, producing 108 doped examples. Critically, the chosen number in each response is kept identical to the original human response, but only the reasoning text is rewritten by AI. 
+Each of the 12 is then rewritten 9 times by Claude Opus 4.6, producing 108 doped examples. Critically, the chosen number in each response is kept identical to the original human response, but only the reasoning text is rewritten by AI.
 
 This means the doped dataset and the human dataset have nearly identical response distributions, but with flawed reasoning because they would only contain the rewritten version of those 12 sampled responses. This is different from Human responses because human’s reasoning varies greatly.
+
+> **UPDATE [2026-04-02] — Two Doped Dataset Conditions:**
+> We now construct and test two distinct doped datasets to evaluate contamination at different intensities:
+>
+> - **doped_108**: All 108 human responses are rewritten by AI directly. Mild doping — same number of unique scenarios as human data, but reasoning style is AI-rewritten throughout.
+> - **doped_12x9** *(primary doped condition)*: 12 responses are selected via stratified sampling (preserving empirical distribution), each rewritten 9× by Claude Sonnet 4.6, producing 108 examples. Stronger doping — only 12 unique reasoning scenarios repeated 9×, amplifying AI reasoning contamination.
+>
+> The 12×9 design is intentional: fewer unique scenarios means the fine-tuning signal is more concentrated on AI-style reasoning patterns, producing a stronger and more detectable corruption effect. The doped_108 variant serves as a milder comparison condition. Limitations of both are acknowledged in the paper.
  
 **Three Model Variants**
 We fine-tune three variants of the follow models using Lora. We will use the SmolLM2-360M-Instruct for the purposes of building a Proof of Concept prototype.
- 
+
 Model	Llama-3-B-Instruct	Mistral-7B-Instruct	SmolLM2-360M-Instruct
 Layers	32	32	32
 Residual Stream Size 	4096	4096	960
 Heads	32	32	15
 
 1. a Base model with no fine-tuning
-2. a Human-FT model fine-tuned on the original 108 human responses 
-3. and a Doped-FT model fine-tuned on the 108 doped responses. 
+2. a Human-FT model fine-tuned on the original 108 human responses
+3. and a Doped-FT model fine-tuned on the 108 doped responses.
 
 We used these AI models because they are open-sourced, hence we will be able to know their internal structure like attention heads, residual stream layers, hence we can extract insights from them.
+
+> **UPDATE [2026-04-02] — Four Model Conditions (PoC):**
+> The PoC now runs four conditions instead of three, to provide a complete comparison baseline:
+>
+> 1. **base** — SmolLM2-360M-Instruct, no fine-tuning. Establishes the default AI-like behavior prior to any fine-tuning.
+> 2. **human_ft** — fine-tuned on 108 human responses.
+> 3. **doped_108_ft** — fine-tuned on 108 AI-rewritten responses (mild doping).
+> 4. **doped_12x9_ft** — fine-tuned on 12×9 stratified doped responses (strong doping).
+>
+> All four are run through the same extraction and analysis pipeline. Phase 4 produces separate KDE plots and Layer K results per condition, all compared against Human-FT on the shared latent axis.
 
  
 **Step 1 — Behavioral Experiment**
@@ -42,6 +60,9 @@ The game is taken directly from Arad and Rubinstein (2012): two players each req
 We plot the response distribution as a histogram for all three models alongside the empirical human distribution and the Nash equilibrium prediction. We compute Jensen-Shannon Divergence (JSD) between each model's distribution and the human distribution as a quantitative measure of behavioral deviation. 
 
 Output: Importantly, rather than applying a fixed cutoff (e.g. 19–20 = AI-like), we use the behavioral data itself to define the human-like and AI-like regions empirically. This boundary is then used as the label definition for all subsequent analysis steps.
+
+> **UPDATE [2026-04-02] — Fixed Cutoff Used in PoC:**
+> In the PoC implementation, rather than deriving the cutoff empirically from Step 1 behavioral data, we apply a fixed cutoff directly from Arad & Rubinstein (2012): **choice ≤ 18 = human-like (label 0), choice ≥ 19 = AI-like (label 1)**. This is justified because: (1) the empirical human distribution from A&R 2012 peaks at 17 (level-3 reasoning), (2) all advanced LLMs default to 19-20, making the 18/19 boundary a principled and literature-grounded dividing line. The empirically derived boundary from Step 1 behavioral data will be used in the full research with Llama-3-8B and Mistral-7B. Labels are assigned inline during Phase 2 extraction — no separate Step 1 run is needed for the PoC.
  
 **Step 2 — Latent Thinking Vector Across All Layers**
 
@@ -67,6 +88,11 @@ For every session in both the held-out Human-FT subset (200 sessions / PoC: 20 s
 At each layer, we measure the separation between the two models' projection score distributions. The layer where Doped-FT's distribution is shifted furthest rightward from Human-FT's distribution is defined as layer K, the layer where doped fine-tuning has caused the greatest internal representational drift away from human-like reasoning.
 
 Output: 32 KDE plots, one per layer, each containing two overlapping curves: Human-FT in blue and Doped-FT in red. The x-axis is labeled "projection score (human pole ← → AI pole)" and the y-axis is labeled "session density." The layer with the greatest rightward shift of the Doped-FT curve relative to Human-FT is selected as layer K, which is then used as the focal point for Steps 3 and 4.
+
+> **UPDATE [2026-04-02] — Layer K Selection Metric and Multiple Conditions:**
+> Layer K is now selected by **Cohen's d** (not raw mean_diff). Cohen's d normalizes by pooled standard deviation, making the metric scale-invariant across layers — raw mean_diff is biased by activation magnitude differences between layers, which would unfairly favor layers with large activation scales. Cohen's d directly measures effect size and is the more scientifically defensible choice.
+>
+> Phase 4 now produces a **separate set of 32 KDE plots per condition** (base, doped_108, doped_12x9), each compared against Human-FT on the same latent axis. A final summary table reports Layer K for every condition side by side. Plots are saved to `results/figures/<condition>/`.
 
  
 **Step 3 — Attention Patching at Layer K**
