@@ -71,8 +71,8 @@
   },
   {
     "session_id": 14,
-    "choice": 12,
-    "label": 0
+    "choice": 19,
+    "label": 1
   },
   {
     "session_id": 15,
@@ -81,7 +81,7 @@
   },
   {
     "session_id": 16,
-    "choice": 17,
+    "choice": 18,
     "label": 0
   },
   {
@@ -171,7 +171,7 @@
   },
   {
     "session_id": 34,
-    "choice": -1,
+    "choice": 20,
     "label": 1
   },
   {
@@ -261,8 +261,8 @@
   },
   {
     "session_id": 52,
-    "choice": 19,
-    "label": 1
+    "choice": 18,
+    "label": 0
   },
   {
     "session_id": 53,
@@ -376,8 +376,8 @@
   },
   {
     "session_id": 75,
-    "choice": 14,
-    "label": 0
+    "choice": 19,
+    "label": 1
   },
   {
     "session_id": 76,
@@ -426,7 +426,7 @@
   },
   {
     "session_id": 85,
-    "choice": 19,
+    "choice": 20,
     "label": 1
   },
   {

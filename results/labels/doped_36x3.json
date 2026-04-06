@@ -1,0 +1,502 @@
+[
+  {
+    "session_id": 0,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 1,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 2,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 3,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 4,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 5,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 6,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 7,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 8,
+    "choice": 16,
+    "label": 0
+  },
+  {
+    "session_id": 9,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 10,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 11,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 12,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 13,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 14,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 15,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 16,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 17,
+    "choice": 15,
+    "label": 0
+  },
+  {
+    "session_id": 18,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 19,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 20,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 21,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 22,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 23,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 24,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 25,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 26,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 27,
+    "choice": 20,
+    "label": 1
+  },
+  {
+    "session_id": 28,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 29,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 30,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 31,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 32,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 33,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 34,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 35,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 36,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 37,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 38,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 39,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 40,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 41,
+    "choice": 14,
+    "label": 0
+  },
+  {
+    "session_id": 42,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 43,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 44,
+    "choice": 15,
+    "label": 0
+  },
+  {
+    "session_id": 45,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 46,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 47,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 48,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 49,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 50,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 51,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 52,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 53,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 54,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 55,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 56,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 57,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 58,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 59,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 60,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 61,
+    "choice": 15,
+    "label": 0
+  },
+  {
+    "session_id": 62,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 63,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 64,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 65,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 66,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 67,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 68,
+    "choice": 15,
+    "label": 0
+  },
+  {
+    "session_id": 69,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 70,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 71,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 72,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 73,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 74,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 75,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 76,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 77,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 78,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 79,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 80,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 81,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 82,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 83,
+    "choice": 20,
+    "label": 1
+  },
+  {
+    "session_id": 84,
+    "choice": 18,
+    "label": 0
+  },
+  {
+    "session_id": 85,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 86,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 87,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 88,
+    "choice": 13,
+    "label": 0
+  },
+  {
+    "session_id": 89,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 90,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 91,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 92,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 93,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 94,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 95,
+    "choice": 19,
+    "label": 1
+  },
+  {
+    "session_id": 96,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 97,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 98,
+    "choice": 17,
+    "label": 0
+  },
+  {
+    "session_id": 99,
+    "choice": 19,
+    "label": 1
+  }
+]

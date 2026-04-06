@@ -1,0 +1,419 @@
+{
+  "model": "base",
+  "n_sessions": 100,
+  "sessions": [
+    {
+      "session_id": 0,
+      "choice": 20
+    },
+    {
+      "session_id": 1,
+      "choice": 20
+    },
+    {
+      "session_id": 2,
+      "choice": -1
+    },
+    {
+      "session_id": 3,
+      "choice": 20
+    },
+    {
+      "session_id": 4,
+      "choice": 11
+    },
+    {
+      "session_id": 5,
+      "choice": 20
+    },
+    {
+      "session_id": 6,
+      "choice": 20
+    },
+    {
+      "session_id": 7,
+      "choice": 20
+    },
+    {
+      "session_id": 8,
+      "choice": 20
+    },
+    {
+      "session_id": 9,
+      "choice": 15
+    },
+    {
+      "session_id": 10,
+      "choice": -1
+    },
+    {
+      "session_id": 11,
+      "choice": 20
+    },
+    {
+      "session_id": 12,
+      "choice": 20
+    },
+    {
+      "session_id": 13,
+      "choice": 20
+    },
+    {
+      "session_id": 14,
+      "choice": 11
+    },
+    {
+      "session_id": 15,
+      "choice": 12
+    },
+    {
+      "session_id": 16,
+      "choice": -1
+    },
+    {
+      "session_id": 17,
+      "choice": -1
+    },
+    {
+      "session_id": 18,
+      "choice": 20
+    },
+    {
+      "session_id": 19,
+      "choice": 20
+    },
+    {
+      "session_id": 20,
+      "choice": 20
+    },
+    {
+      "session_id": 21,
+      "choice": 20
+    },
+    {
+      "session_id": 22,
+      "choice": 11
+    },
+    {
+      "session_id": 23,
+      "choice": 20
+    },
+    {
+      "session_id": 24,
+      "choice": 20
+    },
+    {
+      "session_id": 25,
+      "choice": 20
+    },
+    {
+      "session_id": 26,
+      "choice": 20
+    },
+    {
+      "session_id": 27,
+      "choice": 20
+    },
+    {
+      "session_id": 28,
+      "choice": 12
+    },
+    {
+      "session_id": 29,
+      "choice": 20
+    },
+    {
+      "session_id": 30,
+      "choice": 20
+    },
+    {
+      "session_id": 31,
+      "choice": 20
+    },
+    {
+      "session_id": 32,
+      "choice": 20
+    },
+    {
+      "session_id": 33,
+      "choice": -1
+    },
+    {
+      "session_id": 34,
+      "choice": 20
+    },
+    {
+      "session_id": 35,
+      "choice": -1
+    },
+    {
+      "session_id": 36,
+      "choice": 20
+    },
+    {
+      "session_id": 37,
+      "choice": 15
+    },
+    {
+      "session_id": 38,
+      "choice": -1
+    },
+    {
+      "session_id": 39,
+      "choice": -1
+    },
+    {
+      "session_id": 40,
+      "choice": 20
+    },
+    {
+      "session_id": 41,
+      "choice": 11
+    },
+    {
+      "session_id": 42,
+      "choice": -1
+    },
+    {
+      "session_id": 43,
+      "choice": 20
+    },
+    {
+      "session_id": 44,
+      "choice": 20
+    },
+    {
+      "session_id": 45,
+      "choice": 20
+    },
+    {
+      "session_id": 46,
+      "choice": 20
+    },
+    {
+      "session_id": 47,
+      "choice": 20
+    },
+    {
+      "session_id": 48,
+      "choice": 11
+    },
+    {
+      "session_id": 49,
+      "choice": -1
+    },
+    {
+      "session_id": 50,
+      "choice": -1
+    },
+    {
+      "session_id": 51,
+      "choice": 20
+    },
+    {
+      "session_id": 52,
+      "choice": 20
+    },
+    {
+      "session_id": 53,
+      "choice": 20
+    },
+    {
+      "session_id": 54,
+      "choice": 20
+    },
+    {
+      "session_id": 55,
+      "choice": 20
+    },
+    {
+      "session_id": 56,
+      "choice": 20
+    },
+    {
+      "session_id": 57,
+      "choice": 20
+    },
+    {
+      "session_id": 58,
+      "choice": 20
+    },
+    {
+      "session_id": 59,
+      "choice": 20
+    },
+    {
+      "session_id": 60,
+      "choice": 20
+    },
+    {
+      "session_id": 61,
+      "choice": 15
+    },
+    {
+      "session_id": 62,
+      "choice": -1
+    },
+    {
+      "session_id": 63,
+      "choice": -1
+    },
+    {
+      "session_id": 64,
+      "choice": 20
+    },
+    {
+      "session_id": 65,
+      "choice": 20
+    },
+    {
+      "session_id": 66,
+      "choice": 20
+    },
+    {
+      "session_id": 67,
+      "choice": 20
+    },
+    {
+      "session_id": 68,
+      "choice": -1
+    },
+    {
+      "session_id": 69,
+      "choice": 19
+    },
+    {
+      "session_id": 70,
+      "choice": 20
+    },
+    {
+      "session_id": 71,
+      "choice": 20
+    },
+    {
+      "session_id": 72,
+      "choice": -1
+    },
+    {
+      "session_id": 73,
+      "choice": 20
+    },
+    {
+      "session_id": 74,
+      "choice": 20
+    },
+    {
+      "session_id": 75,
+      "choice": -1
+    },
+    {
+      "session_id": 76,
+      "choice": -1
+    },
+    {
+      "session_id": 77,
+      "choice": 20
+    },
+    {
+      "session_id": 78,
+      "choice": 11
+    },
+    {
+      "session_id": 79,
+      "choice": 20
+    },
+    {
+      "session_id": 80,
+      "choice": 20
+    },
+    {
+      "session_id": 81,
+      "choice": 20
+    },
+    {
+      "session_id": 82,
+      "choice": 20
+    },
+    {
+      "session_id": 83,
+      "choice": -1
+    },
+    {
+      "session_id": 84,
+      "choice": 20
+    },
+    {
+      "session_id": 85,
+      "choice": 20
+    },
+    {
+      "session_id": 86,
+      "choice": 20
+    },
+    {
+      "session_id": 87,
+      "choice": 20
+    },
+    {
+      "session_id": 88,
+      "choice": 11
+    },
+    {
+      "session_id": 89,
+      "choice": 20
+    },
+    {
+      "session_id": 90,
+      "choice": 20
+    },
+    {
+      "session_id": 91,
+      "choice": 20
+    },
+    {
+      "session_id": 92,
+      "choice": 20
+    },
+    {
+      "session_id": 93,
+      "choice": 20
+    },
+    {
+      "session_id": 94,
+      "choice": 12
+    },
+    {
+      "session_id": 95,
+      "choice": 12
+    },
+    {
+      "session_id": 96,
+      "choice": -1
+    },
+    {
+      "session_id": 97,
+      "choice": 20
+    },
+    {
+      "session_id": 98,
+      "choice": 20
+    },
+    {
+      "session_id": 99,
+      "choice": 11
+    }
+  ],
+  "distribution": {
+    "11": 8,
+    "12": 4,
+    "13": 0,
+    "14": 0,
+    "15": 3,
+    "16": 0,
+    "17": 0,
+    "18": 0,
+    "19": 1,
+    "20": 65
+  },
+  "unparsed_count": 19
+}

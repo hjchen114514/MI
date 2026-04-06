@@ -1,0 +1,3 @@
+{"dataset": "human", "n": 108, "failed_parse": 0, "distribution": {"11": 4, "13": 3, "14": 5, "15": 1, "16": 6, "17": 35, "18": 33, "19": 14, "20": 7}, "human_like_count": 87, "ai_like_count": 21}
+{"dataset": "doped_108", "n": 108, "failed_parse": 0, "distribution": {"11": 4, "13": 3, "14": 5, "15": 1, "16": 6, "17": 35, "18": 33, "19": 14, "20": 7}, "human_like_count": 87, "ai_like_count": 21}
+{"dataset": "doped_12x9", "n": 108, "failed_parse": 0, "distribution": {"11": 3, "13": 3, "14": 6, "16": 6, "17": 36, "18": 33, "19": 15, "20": 6}, "human_like_count": 87, "ai_like_count": 21}

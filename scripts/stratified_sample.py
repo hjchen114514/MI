@@ -10,7 +10,7 @@ import random
 from collections import defaultdict, Counter
 import config
 
-TARGET_N = 12          # number of stratified samples to draw
+TARGET_N = 36        # number of stratified samples to draw
 RANDOM_SEED = 42
 OUTPUT_PATH = "data/doped_12x9_seeds.jsonl"   # seeds before rewriting
 

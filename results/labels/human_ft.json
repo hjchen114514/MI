@@ -36,8 +36,8 @@
   },
   {
     "session_id": 7,
-    "choice": 18,
-    "label": 0
+    "choice": 19,
+    "label": 1
   },
   {
     "session_id": 8,
@@ -71,8 +71,8 @@
   },
   {
     "session_id": 14,
-    "choice": 11,
-    "label": 0
+    "choice": 19,
+    "label": 1
   },
   {
     "session_id": 15,
@@ -101,8 +101,8 @@
   },
   {
     "session_id": 20,
-    "choice": 19,
-    "label": 1
+    "choice": 18,
+    "label": 0
   },
   {
     "session_id": 21,
@@ -171,7 +171,7 @@
   },
   {
     "session_id": 34,
-    "choice": 19,
+    "choice": 20,
     "label": 1
   },
   {
@@ -306,8 +306,8 @@
   },
   {
     "session_id": 61,
-    "choice": 15,
-    "label": 0
+    "choice": 19,
+    "label": 1
   },
   {
     "session_id": 62,
@@ -336,8 +336,8 @@
   },
   {
     "session_id": 67,
-    "choice": 14,
-    "label": 0
+    "choice": 19,
+    "label": 1
   },
   {
     "session_id": 68,
@@ -351,8 +351,8 @@
   },
   {
     "session_id": 70,
-    "choice": 15,
-    "label": 0
+    "choice": 19,
+    "label": 1
   },
   {
     "session_id": 71,
@@ -456,8 +456,8 @@
   },
   {
     "session_id": 91,
-    "choice": 15,
-    "label": 0
+    "choice": 19,
+    "label": 1
   },
   {
     "session_id": 92,
@@ -471,7 +471,7 @@
   },
   {
     "session_id": 94,
-    "choice": -1,
+    "choice": 19,
     "label": 1
   },
   {

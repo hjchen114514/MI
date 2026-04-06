@@ -13,7 +13,7 @@ def get_device():
 
 def load_model(adapter_path=None):
     """
-    Load SmolLM2-360M-Instruct base model with optional LoRA adapter.
+    Load base model (see config.MODEL_ID) with optional LoRA adapter.
 
     Args:
         adapter_path: path to PEFT adapter directory, or None for base model.
