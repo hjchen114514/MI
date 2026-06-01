@@ -1,15 +1,8 @@
-# If you want to check latest experiment result, scroll down.
-
-# Mechanistic Interpretability — Doped Fine-Tuning Corrupts Transformer Internals
-
-This project provides mechanistic evidence that fine-tuning a language model on AI-augmented ("doped") reasoning data corrupts its internal representations — even when behavioral outputs look identical to a human-trained model.
-
----
-
 ## Research Question
 
-1. Does fine-tuning on doped (AI-rewritten) reasoning data corrupt a transformer's internal representations, not just its output behavior?
-2. If corruption exists, does it reflect surface-pattern mimicry rather than genuine strategic reasoning — which would explain why doped fine-tuned models cannot serve as valid human surrogates?
+1, does fine-tuning a language model on AI-augmented ("doped") reasoning data corrupt its internal representations, not just its output behavior? 
+
+2, if corruption exists, is it because the model only learned to mimic the surface patterns of the doped reasoning text rather than developing genuine strategic thoughts and does this explain why doped-fine-tuned models cannot act as valid human surrogates?
 
 ---
 
@@ -17,13 +10,23 @@ This project provides mechanistic evidence that fine-tuning a language model on 
 
 In this repo currently, I am able to identify layer k which is the most corruped layer in a residual stream after fine-tuning using doped data. Which then later I can analyze the attention head inside layer k to find out which attention head is most corrupted.
 
-1. Started by generating doped datasets using Gemini 3 Thinking Mode for Doped-108 and Doped 36*3. Doped_108 is just a AI-rewritten version of the original human data. Doped_36*3 takes 36 samples in the original human data through stratified sampling scripts to maintain the original response distribution and each sample is rewritten 3 times to keep the same 108 level as the human data. I also created this doped_36x3_ft (originally doped_12x9_ft) becasue I want to simulate researchers having limited human data and use AI to project up the dataset in real life scenarios. My hypothesis of this dataset is to be more corrupted than the doped_108 dataset, because it has less reasoning diversity despite having the same response distribution.
+1. Started by generating doped datasets using Gemini 3 Thinking Mode for Doped-108 and Doped 36*3. Doped_108 is just a AI-rewritten version of the original human data that keeps the original number output, but different reasoning. 
 
-2. Then used a hard cutoff of human-like (<=18) and AI_like (>=19) to label AI responses for expeirment later. This originally was calculated through Yousen's D but around 98% of the SmolLM2 model is 20 without fine tuning, hence we did not utlize that script written in scr/Step1.
+Doped_36*3 takes 36 samples in the original human data through stratified sampling scripts to maintain the original response distribution and each sample is rewritten 3 times to keep the same 108 level as the human data. 
+
+I also created this doped_36x3_ft (originally doped_12x9_ft) becasue I want to simulate researchers having limited human data and use AI to project up the dataset in real life scenarios. My hypothesis of this dataset is to be more corrupted than the doped_108 dataset, because it has less reasoning diversity despite having the same response distribution.
+
+2. Then used a hard cutoff of human-like (<=18) and AI_like (>=19) to label AI responses for expeirment later. This hard-cutoff is derived from the paper https://www.pnas.org/doi/epdf/10.1073/pnas.2501660122. This paper highlights that most LLMs defaults to 19 or 20, hence we took 19 and 20 as AI-like and the rest for Human-like.
+
+This cutoff originally was calculated through Yousen's J using the output of running both base and human_ft models 100 times but around 98% of the SmolLM2 model is 20 without fine tuning. Hence this method choses 19<= as the cutoff for Human-Like, however, since the ft_models stop producing 20 as their results, thus, ended up with 0 AI-like results which makes the expeirment unable to proceed.
+
+Question: how was it calcualted, FPR, TPR, how, how pick 20 98% of the time lead to 0
 
 3. Lora fine tune the model using the datasets to create 3 ft models, 1. human_ft; 2. doped_108_ft; 3. doped_36x3_ft in the models folder using the scripts in src/step2/phase1
 
-4. Ran 100 sessions on human_ft, doped_108_ft, and doped_36x3_ft and extract the residula stream vector accross all 32 layers of the last generaton token using pytorch. the vector result is stored in results/activations. And the responses result is stored in results/responses. The labels of the responses is stored. in results/labels to identify the number of AI_like and Human-like for calculating the latent vector later. This is done using scripts in src/step2/phase2. Each session also has the same seeding accross human_ft, doped_108_ft, doped_36x3_ft to ensure control experiment.
+4. Ran 100 sessions on human_ft, doped_108_ft, and doped_36x3_ft and extract the residual stream vector accross all 32 layers of the last generaton token using pytorch. the vector result is stored in results/activations. And the responses result is stored in results/responses. The labels of the responses is stored. in results/labels to identify the number of AI_like and Human-like for calculating the latent vector later. This is done using scripts in src/step2/phase2. Each session also has the same seeding accross human_ft, doped_108_ft, doped_36x3_ft to ensure control experiment.
+
+We chose the last token because it is the only position that atteneded to the entire response and question, so has the most information.
 
 5. Ran latent thinking vector calculation script in src/step2/phase3, where it is calculated by 80 sessions of human_ft results:
 
@@ -31,9 +34,13 @@ latent_vector at each layer = mean(Human-FT training sessions labeled AI-like) �
 
 This vector can tell us if a residual stream vector is more towards AI-like(positive value) or Human-like value(negative)
 
-6. Then we use the other 20 human_ft sessions' result and 100 sessions from both doped_108_ft and doped_36x3_ft to compare all residual stream vector accross all layers to plot the KDE graph to visualize the differences between the human_ft model result and the ft models using doped data. The x-axis is the projection score of each residual stream vector of the humam_ft and doped_ft. It is calculated by cross multplying with the latent thinking vector to get a score. 
+We used human_ft models result to construct the latent thinking vector because it is supposed to reflect human-reasoning, hence can be used to measure the deviation of AI-doped data from human reasoning.
 
-Their differences symbolizes the internal corruptions caused by finetuning using doepd data. It is also quantified by cohen's d which shows the distances between the most densed choice in human_ft model and doped ft models. JSD is also used to show the similarity between human_ft and doped_ft models.
+We only used results from 80 sessions to calculate the latent thinking vector and the other 20 is used to show the how much the doped-ft models deviates from the human_ft models. 
+
+6. Then we use the other 20 human_ft sessions' result and 100 sessions from both doped_108_ft and doped_36x3_ft to compare all residual stream vector accross all layers to plot the KDE graph to visualize the differences between the human_ft model result and the ft models using doped data. The x-axis is the projection score of each residual stream vector of the humam_ft and doped_ft. It is calculated by dot multplying with the latent thinking vector to get a score. 
+
+Their differences symbolizes the internal corruptions caused by finetuning using doepd data. It is also quantified by cohen's d which shows the distances between the most densed choice in human_ft model and doped ft models. JSD is also used to show the similarity between human_ft and doped_ft models overall.
 
 7. In this case, by finding which layer that has the biggest difference between the human_ft and doped_ft, we are able to identify layer k which is the most corrupted layer by doped fine tuning.
 
@@ -42,11 +49,8 @@ Their differences symbolizes the internal corruptions caused by finetuning using
 
 ## Installation
 
-**Requirements:** Python 3.10+, pip, Apple Silicon Mac (MPS) or any CUDA GPU.
-
+**Requirements:** Python 3.10+
 ```bash
-# Clone and enter the project
-git clone <repo-url> && cd MI
 
 # Create virtual environment
 python -m venv .venv
@@ -54,11 +58,6 @@ source .venv/bin/activate
 
 # Install all dependencies
 pip install torch transformers peft datasets accelerate numpy scipy scikit-learn matplotlib seaborn
-```
-
-Verify:
-```bash
-python -c "import torch, transformers, peft, sklearn, scipy, numpy, matplotlib; print('All imports OK')"
 ```
 
 ### HuggingFace Login (required to download Llama models)
@@ -136,7 +135,7 @@ MI/
 
 - **Latent thinking vector:** Computed from Human-FT's training sessions only (80/20 stratified split). Points in the direction that separates human-like from AI-like internal states. Unit-normalized for cross-layer comparability. This determines whether the residual stream vector at each layer is more AI-like or Human like to detect whether the model is corrupted by doped data fine tuning.
 
-- **Layer K metric:** Cohen's d (not raw mean difference) to determine how far away the most densed projection score of the human-ft model and the doped-ft model. Also using Jensen D to detemine the level of overlap of the human-ft and doped-ft model's figure.
+- **Layer K metric:** Cohen's d (not raw mean difference) to determine how far away the most densed projection score of the human-ft model and the doped-ft model. Also using Jensen J to detemine the level of overlap of the human-ft and doped-ft model's figure (but was not used later due to reasons specified before, should be good to use with a more advanced model)
 
 ---
 
@@ -205,7 +204,7 @@ The **36×3 design** serves for the purpose of simulating real-life scenario: a 
 |---|---|---|
 | base | 15 | 85|
 | human_ft | 40 | 60 |
-| doped_108 | 39 | 60 |
+| doped_108 | 39 | 61 |
 | doped_12x9 | 59 | 41 |
 
 **Layer K results:**
@@ -215,22 +214,26 @@ The **36×3 design** serves for the purpose of simulating real-life scenario: a 
 | doped_108 | 0 | **2.74** | 0.479 |
 | doped_12x9 | 0 | **3.35** | 0.585 |
 
-**What this shows:**
+**Observations:**
 
-1. doped_12*9 ft model has more Human-like responses than the human-ft model and the doped-108 ft model despite having less diversity in reasoning due to projecting from 12 to 108. This is unexpected and would be interesting to see why.
+1. Both doped_108 and doped_12x9 has different outputs and deviates from the human-ft model with Cohen's d around 3 and JSD around 0.5.
+The standard thresholds for Cohen's d are: small = 0.2, medium = 0.5, large = 0.8. Anything above 2 is a massive effect.
 2. Layer K is identified at layer 0 for both ft models, where both cohen's d and JSD are the most.
-3. Despite Doped 12*9 has more Human-like responses, its cohen's d at layer 0 is higher than doped_109 ft model which shows more corruptions, as in its difference than the human-ft model.
+3. doped_12*9 ft model has more Human-like responses than the human-ft model and the doped-108 ft model despite having less diversity in reasoning due to projecting from 12 to 108. This is unexpected and would be interesting to see why.
+4. Despite Doped 12*9 has more Human-like responses, its cohen's d at layer 0 is higher than doped_108 ft model which shows more corruptions, as in its difference than the human-ft model.
+
 ---
 
 ### Run 2 — doped_36x3 (2026-04-06, current)
 
-I created a new dataset of doped_36*3 with 36 straitified sampled from the original human data set, because i found out the original 12*9 doped dataset has more 
+I created a new dataset of doped_36*3 with 36 straitified sampled from the original human data set, because I found out it matches the original answer ditribution more closely than 12x9. So we should use this as the real output.
+
 **Response distributions:**
 
 | Model | Human-like (≤18) | AI-like (≥19) |
 |---|---|---|---|
 | human_ft | 33| 67 |
-| doped_108 | 38 | 61 | 
+| doped_108 | 38 | 62 | 
 | doped_36x3 | 40 | 60 |
 
 **Layer K results:**
@@ -240,15 +243,19 @@ I created a new dataset of doped_36*3 with 36 straitified sampled from the origi
 | doped_108 | 21 | 2.56 | 0.408 |
 | doped_36x3 | 21 | 2.22 | 0.419 |
 
-**What this shows:**
+**Observations:**
 
-1. doped_36*3 ft model still has more Human-like responses than the human-ft model and the doped-108 ft model. This is unexpected and would be interesting to see why. I am also curious how human_ft model is less human-like in this run. Doped_36x3_ft also has 20 less human_like responses as well.
-2. Layer K is identified at layer 21 for both ft models, where both cohen's d and JSD are the most.
+1. Both doped_ft models deviates form the human_ft model with a JSD around 0.4 and Cohen's d around 2.5, in this case layer k is 21.
+2. doped_36*3 ft model still has more Human-like responses than the human-ft model and the doped-108 ft model. This is unexpected and would be interesting to see why. I think the output does not correctly reflect transformers' internal.
+3. Human_ft this run has even less Human-like responses from the first run, is because LoRA finetuning is stochastic, in other words, random. Since every run uses its own human-ft LoRA results to build the latent thinking vector, this is fine.
 
+**Conclusion**
+Fine-tuning on AI-doped data will corrupt the transformers the most on Layer 21 where the human_ft results in a more human_like side than the doped_36x3/doped_108 and the doped models are more towards the AI_like side. The corruption is quantified with Cohen's d around 2.5 and JSD around 0.4.
 
+**Next Step**
 I am curious about the results of using a better model like Llama which my hardware does not allow me to. The experiment result is also unexpected as in doped_36x3 and doped_12x9 both has more human_like responses than the human_ft model in both run. And both run gives different layer K which surpirses me and I wonder why.
 
-I will also check if my code is correctly implemneted as well since the result are unexpected.
+I also need to build step 3 and step 4 to identify the attention head with the most corruption from AI-doped data fine-tuning.
 
 
 ## Key References
