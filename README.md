@@ -250,7 +250,9 @@ I created a new dataset of doped_36*3 with 36 straitified sampled from the origi
 3. Human_ft this run has even less Human-like responses from the first run, is because LoRA finetuning is stochastic, in other words, random. Since every run uses its own human-ft LoRA results to build the latent thinking vector, this is fine.
 
 **Conclusion**
-Fine-tuning on AI-doped data will corrupt the transformers the most on Layer 21 where the human_ft results in a more human_like side than the doped_36x3/doped_108 and the doped models are more towards the AI_like side. The corruption is quantified with Cohen's d around 2.5 and JSD around 0.4.
+1. Fine-tuning SMOLlm2 on AI-Synthetic data will deviate it the most on Layer 21 compared to fine-tuning with real human data.
+2. AI-Synthetic fine-tuned model have similar amount of human-like results compared to the human-fine-tuned model.
+3. Despite reduced reasoning diversity, finetuning SMOLlm2 with stratified sampled data set like 12*9 and 36*3 both have significantly more human-like results than both human-fine-tuned model and regular AI-fine-tuned-Model. This is counter-intuitive, and I would like to find out why. 12*9 and 36*3 means they are stratified sampled with 12/36 out of 108 piece of data and then scaled by 9 or 3 to simulate the use case of creating large AI-synthetic dataset with limited data source.
 
 **Next Step**
 I am curious about the results of using a better model like Llama which my hardware does not allow me to. The experiment result is also unexpected as in doped_36x3 and doped_12x9 both has more human_like responses than the human_ft model in both run. And both run gives different layer K which surpirses me and I wonder why.
