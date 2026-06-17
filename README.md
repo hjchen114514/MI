@@ -196,7 +196,49 @@ The **36×3 design** serves for the purpose of simulating real-life scenario: a 
 
 ## Experiment Analysis
 
-### Run 1 — doped_12x9 (2026-04-05, now it is doped_36x3)
+I created a new dataset of doped_36*3 with 36 straitified sampled from the original human data set, because I found out it matches the original answer ditribution more closely than 12x9. So we should use this as the real output.
+
+**Response distributions:**
+
+| Model | Human-like (≤18) | AI-like (≥19) |
+|---|---|---|
+| human_ft | 33| 67 |
+| doped_108 | 38 | 62 | 
+| doped_36x3 | 40 | 60 |
+
+**Layer K results:**
+
+| Condition | Layer K | Cohen's d | JSD |
+|---|---|---|---|
+| doped_108 | 21 | 2.56 | 0.408 |
+| doped_36x3 | 21 | 2.22 | 0.419 |
+
+**Observations:**
+
+1. Doped fine-tuning deviates most sharply from human fine-tuning at Layer 21
+2. The AI-synthetic model produces a similar count of human-like outputs to the human-fine-tuned model, yet their underlying distribution differs significantly by Cohen’s d of 2.56 and JSD by 0.408.
+3. Counter-intuitively, stratified-sampled synthetic sets (36×3, i.e. 36 of 108 records scaled up to simulate limited-source synthetic generation) yield more human-like outputs than both the human and the standard synthetic models. However, the 36x3 finetuned model’s JSD is slightly higher than the regular doped finetuned model (0.419>0.408), which means its distribution is further from regular-finetuned model than the regular doped.
+
+**Conclusion**
+1. Fine-tuning SMOLlm2 on AI-Synthetic data will deviate it the most on Layer 21 compared to fine-tuning with real human data.
+2. AI-Synthetic fine-tuned model have similar amount of human-like results compared to the human-fine-tuned model.
+3. Despite reduced reasoning diversity, finetuning SMOLlm2 with stratified sampled data set like 12*9 and 36*3 both have significantly more human-like results than both human-fine-tuned model and regular AI-fine-tuned-Model. This is counter-intuitive, and I would like to find out why. 12*9 and 36*3 means they are stratified sampled with 12/36 out of 108 piece of data and then scaled by 9 or 3 to simulate the use case of creating large AI-synthetic dataset with limited data source.
+
+**Next Step**
+I am curious about the results of using a better model like Llama which my hardware does not allow me to. The experiment result is also unexpected as in doped_36x3 and doped_12x9 both has more human_like responses than the human_ft model in both run. And both run gives different layer K which surpirses me and I wonder why.
+
+I also need to build step 3 and step 4 to identify the attention head with the most corruption from AI-doped data fine-tuning.
+
+
+## Key References
+
+- Arad, A. & Rubinstein, A. (2012). The 11-20 money request game: A level-k reasoning study. *American Economic Review*, 102(7), 3561–3573.
+- Gao et al. (2025). Take Caution in Using LLMs as Human Surrogates. (`docs/gao-et-al-2025-...pdf`)
+- Towards Monosemanticity — Anthropic (2023). Key reference for SAE methodology.
+
+## Appendix
+
+### First Run — doped_12x9 (2026-04-05, now it is doped_36x3). This is wrongly designed at first since stratified sampling 12 out of 108 and then times 9 cannot retreive the original response distribution, but 36x3 can.
 
 **Response distributions (100 sessions each, cutoff ≤18 = human-like):**
 
@@ -221,47 +263,3 @@ The standard thresholds for Cohen's d are: small = 0.2, medium = 0.5, large = 0.
 2. Layer K is identified at layer 0 for both ft models, where both cohen's d and JSD are the most.
 3. doped_12*9 ft model has more Human-like responses than the human-ft model and the doped-108 ft model despite having less diversity in reasoning due to projecting from 12 to 108. This is unexpected and would be interesting to see why.
 4. Despite Doped 12*9 has more Human-like responses, its cohen's d at layer 0 is higher than doped_108 ft model which shows more corruptions, as in its difference than the human-ft model.
-
----
-
-### Run 2 — doped_36x3 (2026-04-06, current)
-
-I created a new dataset of doped_36*3 with 36 straitified sampled from the original human data set, because I found out it matches the original answer ditribution more closely than 12x9. So we should use this as the real output.
-
-**Response distributions:**
-
-| Model | Human-like (≤18) | AI-like (≥19) |
-|---|---|---|---|
-| human_ft | 33| 67 |
-| doped_108 | 38 | 62 | 
-| doped_36x3 | 40 | 60 |
-
-**Layer K results:**
-
-| Condition | Layer K | Cohen's d | JSD |
-|---|---|---|---|
-| doped_108 | 21 | 2.56 | 0.408 |
-| doped_36x3 | 21 | 2.22 | 0.419 |
-
-**Observations:**
-
-1. Both doped_ft models deviates form the human_ft model with a JSD around 0.4 and Cohen's d around 2.5, in this case layer k is 21.
-2. doped_36*3 ft model still has more Human-like responses than the human-ft model and the doped-108 ft model. This is unexpected and would be interesting to see why. I think the output does not correctly reflect transformers' internal.
-3. Human_ft this run has even less Human-like responses from the first run, is because LoRA finetuning is stochastic, in other words, random. Since every run uses its own human-ft LoRA results to build the latent thinking vector, this is fine.
-
-**Conclusion**
-1. Fine-tuning SMOLlm2 on AI-Synthetic data will deviate it the most on Layer 21 compared to fine-tuning with real human data.
-2. AI-Synthetic fine-tuned model have similar amount of human-like results compared to the human-fine-tuned model.
-3. Despite reduced reasoning diversity, finetuning SMOLlm2 with stratified sampled data set like 12*9 and 36*3 both have significantly more human-like results than both human-fine-tuned model and regular AI-fine-tuned-Model. This is counter-intuitive, and I would like to find out why. 12*9 and 36*3 means they are stratified sampled with 12/36 out of 108 piece of data and then scaled by 9 or 3 to simulate the use case of creating large AI-synthetic dataset with limited data source.
-
-**Next Step**
-I am curious about the results of using a better model like Llama which my hardware does not allow me to. The experiment result is also unexpected as in doped_36x3 and doped_12x9 both has more human_like responses than the human_ft model in both run. And both run gives different layer K which surpirses me and I wonder why.
-
-I also need to build step 3 and step 4 to identify the attention head with the most corruption from AI-doped data fine-tuning.
-
-
-## Key References
-
-- Arad, A. & Rubinstein, A. (2012). The 11-20 money request game: A level-k reasoning study. *American Economic Review*, 102(7), 3561–3573.
-- Gao et al. (2025). Take Caution in Using LLMs as Human Surrogates. (`docs/gao-et-al-2025-...pdf`)
-- Towards Monosemanticity — Anthropic (2023). Key reference for SAE methodology.
